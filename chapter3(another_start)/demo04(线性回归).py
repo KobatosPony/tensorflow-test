@@ -26,7 +26,35 @@ W = tf.Variable(rng.rand(), name="weight")
 b = tf.Variable(rng.rand(), name="bias")
 
 # 初始化线性回归方程(activation为X对应的Y值)
-activation = tf.add(tf.matmul(X,W), b)
+activation = tf.add(tf.multiply(X,W), b)
 
-# 定义损失函数
+# 定义损失函数并用梯度下降算法降低损失函数
 cost = tf.reduce_sum(tf.pow(activation-Y,2))/(2*n_samples)
+optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(cost)
+
+# 初始化所有变量
+init = tf.initialize_all_variables()
+
+#  运行图
+with tf.Session() as sess:
+    sess.run(init)
+
+    for epoch in range(training_epochs):
+        for(x,y) in zip(train_X,train_Y):
+            print("Y=",sess.run(W),"X+",sess.run(b))
+            sess.run(optimizer,feed_dict={X:x,Y:y})
+
+        if epoch % display_step == 0:
+            print("Epoch:","%04d"%(epoch+1),"cost=",
+                  "{:.9f}".format(sess.run(cost,feed_dict={X:train_X,Y:train_Y})),
+                  "W=",sess.run(W),"b=",sess.run(b))
+
+    print("Optimization Finished!")
+    print("cost=",sess.run(cost,feed_dict={X:train_X,Y:train_Y}),
+          "W=",sess.run(W),"b=",sess.run(b))
+
+    # 绘制图像
+    plt.plot(train_X,train_Y,'ro',label='Original data')
+    plt.plot(train_X,sess.run(W)*train_X+sess.run(b),label='Fitted line')
+    plt.legend()
+    plt.show()
